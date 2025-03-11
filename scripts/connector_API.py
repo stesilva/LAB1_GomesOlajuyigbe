@@ -36,7 +36,7 @@ def retrive_paper_details(api_key, paper_ids):
     headers = {"x-api-key": api_key}
     response = requests.post(
         'https://api.semanticscholar.org/graph/v1/paper/batch',
-        params={'fields': 'paperId,authors,title,venue,publicationVenue,year,abstract,citationCount,fieldsOfStudy,s2FieldsOfStudy,publicationTypes,publicationDate,citations,journal'},
+        params={'fields': 'paperId,authors,title,venue,publicationVenue,year,abstract,citationCount,fieldsOfStudy,s2FieldsOfStudy,publicationTypes,publicationDate,journal'},
         json={"ids": paper_ids},
         headers=headers
     )
