@@ -3,7 +3,7 @@ import os
 import logging
 
 from scripts.connector_neo4j import ConnectorNeo4j
-from scripts import connector_API
+from scripts import connector_API, preprocess_API_data
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)  # Set log level to INFO
@@ -21,7 +21,10 @@ if __name__ == "__main__":
     search_fields = os.getenv("FIELDS").split(',')
 
     logger.info("--------------------- RETRIVING DATA FROM SEMANTIC SCHOLAR ---------------------")
-    connector_API.retrive_data_API(api_key,search_fields)
+    #connector_API.retrive_data_API(api_key,search_fields)
+
+    logger.info("--------------------- PREPROCESSING AND TRANSFORMING DATA FROM SEMANTIC SCHOLAR ---------------------")
+    preprocess_API_data.preprocess_data()
 
 
     # logger.info("--------------------- CONNECTING TO NEO4J ---------------------")
