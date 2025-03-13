@@ -16,12 +16,12 @@ logger = logging.getLogger()
 
 #Predefined lists of fake data for generating random inputs
 first_names = ["John", "Jane", "Alex", "Emily", "Chris", "Sarah", "Michael", "Jessica", "David", "Sophia"]
-last_names = ["Smith", "Johnson", "Brown", "Williams", "Jones", "Garcia", "Miller", "Davis", "Martinez", "Hernandez"]
+last_names = ["Smith", "Johnson", "Brown", "Williams", "Jones", "Garcia", "Miller", "Davis", "Martinez", "Hernandez", "Silva", "Gomes"]
 editions = list(range(1, 21))  # 1 to 20
 cities = ["New York", "London", "Paris", "Tokyo", "Sydney", "Berlin", "Beijing", "Los Angeles", "Chicago", "Houston", "Barcelona", "São Paulo", "Abuja"]
 adjectives = ["Annual", "International", "Global", "Regional", "National"]
-event_types = ["Conference", "Symposium", "Workshop", "Summit", "Meeting"]
-publication_types = ["Journal", "Review", "Bulletin", "Magazine"]
+event_types = ["Conference", "Symposium", "Workshop", "Summit"]
+publication_types = ["Journal", "Review", "Magazine"]
 field_keywords = [
     "Analytics", "Data Mining", "SQL",
     "Threat Detection", "Intrusion Prevention", "Encryption", "Firewall", "Malware", "Phishing", "Vulnerability Assessment",
@@ -29,9 +29,6 @@ field_keywords = [
     "Infrastructure-as-a-Service", "Platform-as-a-Service", "Software-as-a-Service", "Virtualization", "Scalability", "Multi-cloud",
     "Network Analysis", "Graph Database", "Centrality", "Clustering", "Pathfinding", "Graph", "Big Data", "Cybersecurity", "Artificial Intelligence", "Cloud"
 ]
-
-
-
 
 def generate_random_name():
     #Generate a random name using predefined first and last names
@@ -215,6 +212,20 @@ def keywords_format(row):
     
     return combined_keywords
 
+def citations_format(row,valid_paper_ids):
+    publication_citations = safe_eval(row.get("references"), {})
+    citations_ids = [citation.get("paperId", "") for citation in publication_citations]
+    
+    # Only retain citations where citations_ids is also in valid_paper_ids
+    if isinstance(citations_ids, list):
+        filtered_citations = [cid for cid in citations_ids if cid in valid_paper_ids]
+    elif isinstance(citations_ids, str):
+        filtered_citations = citations_ids if citations_ids in valid_paper_ids else ""
+    else:
+        filtered_citations = []
+    
+    return filtered_citations
+
 
 def preprocess_data():
 
@@ -238,6 +249,9 @@ def preprocess_data():
     #Remove duplicate rows based on the 'paperID' attribute
     combined_data = combined_data.drop_duplicates(subset='paperId', keep='first')
 
+    #Retrive list of valid paper IDs:
+    valid_paper_ids = combined_data['paperId'].tolist()
+
     #Create new df for storing preprocessed data
     processed_data = []
     for _, row in combined_data.iterrows():
@@ -257,7 +271,8 @@ def preprocess_data():
             "journalName": journalName_format(row),
             "jornalYear": jornalYear_format(row),
             "jornalVolume": jornalVolume_format(row),
-            "keywords": keywords_format(row)
+            "keywords": keywords_format(row),
+            "citesIDs": citations_format(row, valid_paper_ids)
         })
    
 

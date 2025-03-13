@@ -12,7 +12,7 @@ logger = logging.getLogger()
 def retrive_papers_ids(api_key, field):
     all_papers = []
     offset = 0
-    limit = 100 #limit for 100 paper for each field
+    limit = 50 #limit for 100 paper for each field
 
     url = f"https://api.semanticscholar.org/graph/v1/paper/search?query={field}&limit={limit}&offset={offset}"
     headers = {"x-api-key": api_key}
@@ -34,7 +34,7 @@ def retrive_paper_details(api_key, paper_ids):
     headers = {"x-api-key": api_key}
     response = requests.post(
         'https://api.semanticscholar.org/graph/v1/paper/batch',
-        params={'fields': 'paperId,authors,title,venue,publicationVenue,year,abstract,citationCount,fieldsOfStudy,publicationTypes,publicationDate,journal'},
+        params={'fields': 'paperId,authors,title,venue,publicationVenue,year,abstract,citationCount,fieldsOfStudy,publicationTypes,publicationDate,journal,references'},
         json={"ids": paper_ids},
         headers=headers
     )
@@ -51,21 +51,60 @@ def retrive_paper_details(api_key, paper_ids):
     else:
         return None
     
-def get_papers_details(api_key,field):
-    #First retrive paper IDs from each field
-    paper_ids = retrive_papers_ids(api_key,field)
-    paper_ids = [paper['paperId'] for paper in paper_ids]
+def get_papers_details(api_key, field):
+    try:
+        #First retrieve paper IDs from each field
+        paper_ids = retrive_papers_ids(api_key, field)
+        paper_ids = list(set([paper['paperId'] for paper in paper_ids]))  #Remove duplicates
 
-    if paper_ids:
-        #Retrive paper data
-        logger.info('Retriving paper details for field %s', field) 
-        publications_data = retrive_paper_details(api_key,paper_ids)
-    else:
-        print("Could not retrieve paper information.")
+        if paper_ids:
+            logger.info(f'Retrieving paper details for field {field}')
+            publications_data = retrive_paper_details(api_key, paper_ids)
 
-    df = pd.DataFrame(publications_data)
-    #Dump fetched paper details into CSV
-    df.to_csv('data'+'/raw_data/paper_' + field + '.csv', index=False, quoting=csv.QUOTE_ALL)
+            reference_paper_ids = set()
+
+            if publications_data is not None:
+                for paper in publications_data:
+                    if 'references' in paper:
+                        # Get up to 10 valid references for each paper
+                        valid_refs = [ref['paperId'] for ref in paper['references'][:10] 
+                                    if 'paperId' in ref and ref['paperId'] is not None]
+                        reference_paper_ids.update(valid_refs)
+
+                
+            logger.info(f'Retrieving reference paper details for field {field}')
+
+            # Ensure reference_paper_ids is unique
+            reference_paper_ids = list(set(reference_paper_ids))
+
+            reference_publication_data = []
+
+            # Process the references in batches (100 IDs at a time)
+            batch_size = 100
+            for i in range(0, len(reference_paper_ids), batch_size):
+                # Get the current batch of IDs
+                batch = reference_paper_ids[i:i + batch_size]
+                
+                # Retrieve paper details for the current batch
+                logger.info(f'Retrieving batch {i // batch_size + 1} of reference papers')
+                batch_data = retrive_paper_details(api_key, batch)
+                
+                if batch_data is not None:
+                    # Extend the reference publication data with the retrieved batch data
+                    reference_publication_data.extend(batch_data)
+
+            # Combine publications data and reference publication data into a DataFrame
+            df = pd.DataFrame(publications_data + reference_publication_data)
+
+            # Save the DataFrame to a CSV file
+            output_path = f'data/raw_data/paper_{field}.csv'
+            df.to_csv(output_path, index=False, quoting=csv.QUOTE_ALL)
+
+            logger.info(f'Data saved to {output_path}')
+        else:
+            logger.warning(f"No paper IDs found for field {field}")
+    except Exception as e:
+        logger.error(f"An error occurred while processing field {field}: {str(e)}")
 
 #Retrive raw data from the API
 def retrive_data_API(api_key,fields):
