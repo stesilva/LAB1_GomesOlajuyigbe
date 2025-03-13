@@ -18,7 +18,7 @@ logger = logging.getLogger()
 first_names = ["John", "Jane", "Alex", "Emily", "Chris", "Sarah", "Michael", "Jessica", "David", "Sophia"]
 last_names = ["Smith", "Johnson", "Brown", "Williams", "Jones", "Garcia", "Miller", "Davis", "Martinez", "Hernandez", "Silva", "Gomes"]
 editions = list(range(1, 21))  # 1 to 20
-cities = ["New York", "London", "Paris", "Tokyo", "Sydney", "Berlin", "Beijing", "Los Angeles", "Chicago", "Houston", "Barcelona", "São Paulo", "Abuja"]
+cities = ["New York", "London", "Paris", "Tokyo", "Sydney", "Berlin", "Beijing", "Los Angeles", "Chicago", "Houston", "Barcelona", "Sao Paulo", "Abuja"]
 adjectives = ["Annual", "International", "Global", "Regional", "National"]
 event_types = ["Conference", "Symposium", "Workshop", "Summit"]
 publication_types = ["Journal", "Review", "Magazine"]
@@ -29,6 +29,7 @@ field_keywords = [
     "Infrastructure-as-a-Service", "Platform-as-a-Service", "Software-as-a-Service", "Virtualization", "Scalability", "Multi-cloud",
     "Network Analysis", "Graph Database", "Centrality", "Clustering", "Pathfinding", "Graph", "Big Data", "Cybersecurity", "Artificial Intelligence", "Cloud"
 ]
+abstract_default = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exerreference ullamco laboris nisi ut aliquip ex ea commodo consequat"
 
 def generate_random_name():
     #Generate a random name using predefined first and last names
@@ -69,7 +70,11 @@ def extract_topic(row):
     return fields_of_study[0] if fields_of_study else "Science"
 
 def get_year(row):
-    return row.get("year", str(random.randint(2000, 2025)))
+    year = row.get("year", "")
+    try:
+        return int(year)
+    except ValueError:
+        return random.randint(2000, 2025)
 
 def generate_venue_name(publication_type, topic, year):
     if publication_type == "conference" or publication_type == "workshop":
@@ -99,7 +104,8 @@ def paperAbstract_format(row):
         
         #Keep only the first 150 words
         abstract = " ".join(words[:150])
-    
+    else:
+        abstract = abstract_default   
     return abstract
 
 def paperAuthorID_format(row):
@@ -146,13 +152,17 @@ def conferenceWorkshopType_format(row):
 def conferenceWorkshopEdition_format(row):
     pub_type = determine_publication_type(row)
     if pub_type == "conference":
-        return str(random.choice(editions))
+        return random.choice(editions)
     return ""
 
 def conferenceWorkshopYear_format(row):
     pub_type = determine_publication_type(row)
     if pub_type == "conference":
-        return row.get("year", str(random.randint(2000, 2025)))
+        year = row.get("year", "")
+        try:
+            return int(year)
+        except ValueError:
+            return random.randint(2000, 2025)
     return ""
 
 def conferenceWorkshopCity_format(row):
@@ -183,14 +193,22 @@ def journalName_format(row):
 def jornalYear_format(row):
     pub_type = determine_publication_type(row)
     if pub_type == "journal":
-        return row.get("year", str(random.randint(2000, 2025)))
+        year = row.get("year", "")
+        try:
+            return int(year)
+        except ValueError:
+            return random.randint(2000, 2025)
     return ""
 
 def jornalVolume_format(row):
     pub_type = determine_publication_type(row)
     if pub_type == "journal":
         journal = safe_eval(row.get("journal"), {})
-        return journal.get("volume", str(random.randint(1, 100)))
+        volume = journal.get("volume", str(random.randint(1, 100)))
+        try:
+            return int(volume)
+        except ValueError:
+            return 1
     return ""
 
 def keywords_format(row):
@@ -202,29 +220,36 @@ def keywords_format(row):
     title_keywords = []
     
     if title:
-            # Check if any predefined keyword is in the title
+        #Check if any predefined keyword is in the title
          for keyword in field_keywords:
             if keyword.lower() in title:
                 title_keywords.append(keyword)
         
-        # Combine base, predefined, and additional keywords
+    #Combine base, predefined, and additional keywords
     combined_keywords = list(set(base_keywords + title_keywords))
+
+    if not combined_keywords:
+        combined_keywords = ["Science"]
     
     return combined_keywords
 
-def citations_format(row,valid_paper_ids):
-    publication_citations = safe_eval(row.get("references"), {})
-    citations_ids = [citation.get("paperId", "") for citation in publication_citations]
+def references_format(row, valid_paper_ids):
+    # Safely evaluate the "references" field and extract references
+    publication_references = safe_eval(row.get("references"), {})
+    references_ids = [reference.get("paperId", "") for reference in publication_references]
     
-    # Only retain citations where citations_ids is also in valid_paper_ids
-    if isinstance(citations_ids, list):
-        filtered_citations = [cid for cid in citations_ids if cid in valid_paper_ids]
-    elif isinstance(citations_ids, str):
-        filtered_citations = citations_ids if citations_ids in valid_paper_ids else ""
+    # Filter references based on valid_paper_ids
+    if isinstance(references_ids, list):
+        filtered_references = [cid for cid in references_ids if cid in valid_paper_ids]
+    elif isinstance(references_ids, str):
+        filtered_references = [references_ids] if references_ids in valid_paper_ids else []
     else:
-        filtered_citations = []
+        filtered_references = []
     
-    return filtered_citations
+    # Count the number of valid references
+    reference_count = len(filtered_references)
+    
+    return filtered_references, reference_count
 
 
 def preprocess_data():
@@ -255,6 +280,7 @@ def preprocess_data():
     #Create new df for storing preprocessed data
     processed_data = []
     for _, row in combined_data.iterrows():
+        filtered_references, reference_count = references_format(row, valid_paper_ids)
         processed_data.append({
             "paperDOI": paperDOI_format(row),
             "paperTitle": paperTitle_format(row),
@@ -272,10 +298,12 @@ def preprocess_data():
             "jornalYear": jornalYear_format(row),
             "jornalVolume": jornalVolume_format(row),
             "keywords": keywords_format(row),
-            "citesIDs": citations_format(row, valid_paper_ids)
+            "referenceIDs": filtered_references,
+            "referenceCount": reference_count
         })
-   
 
     #Convert to DataFrame and save as CSV
     result_df = pd.DataFrame(processed_data)
     result_df.to_csv("data/preprocessed_data/transformed_data.csv", sep=";", index=False)
+
+    value_counts = result_df['jornalVolume'].value_counts()
