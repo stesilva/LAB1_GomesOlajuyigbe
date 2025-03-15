@@ -15,6 +15,12 @@ def load_node_paper(session):
             title: trim(row.title), 
             abstract: trim(row.abstract), 
             citationCount: toInteger(row.citationCount)})"""
+        """LOAD CSV WITH HEADERS FROM "file:///papers.csv" AS row
+            CREATE (paper:Paper {
+            paperDOI: trim(row.doi), 
+            title: trim(row.title), 
+            abstract: trim(row.abstract), 
+            citationCount: toInteger(row.citationCount)})"""
     )     
     print('Created node for paper.')
 
@@ -24,11 +30,19 @@ def load_node_author(session):
             CREATE (author:Author {
             authorID: trim(row.authorID), 
             name: trim(row.name)})"""
+        """LOAD CSV WITH HEADERS FROM "file:///authors.csv" AS row
+            CREATE (author:Author {
+            authorID: trim(row.authorID), 
+            name: trim(row.name)})"""
     )     
     print('Created node for author.')
 
 def load_node_journal(session):
     session.run(
+        """LOAD CSV WITH HEADERS FROM "file:///journals.csv" AS row
+            CREATE (journal:Journal {
+            journalID: trim(row.journalID), 
+            name: trim(row.name)})"""
         """LOAD CSV WITH HEADERS FROM "file:///journals.csv" AS row
             CREATE (journal:Journal {
             journalID: trim(row.journalID), 
@@ -43,11 +57,19 @@ def load_node_conference_workshop(session):
             conferenceWorkshopID: trim(row.conferenceID), 
             name: trim(row.name),
             type: trim(row.type)})"""
+        """LOAD CSV WITH HEADERS FROM "file:///conferences.csv" AS row
+            CREATE (conferenceworkshop:ConferenceWorkshop {
+            conferenceWorkshopID: trim(row.conferenceID), 
+            name: trim(row.name),
+            type: trim(row.type)})"""
     )      
     print('Created node for conference/workshop.')
 
 def load_node_keyword(session):
     session.run(
+        """LOAD CSV WITH HEADERS FROM "file:///keywords.csv" AS row
+            CREATE (keyword:Keyword {
+            keyword: trim(row.keyword)})"""
         """LOAD CSV WITH HEADERS FROM "file:///keywords.csv" AS row
             CREATE (keyword:Keyword {
             keyword: trim(row.keyword)})"""
@@ -104,6 +126,7 @@ def load_edge_paper_publishedin_journal(session):
     session.run(
         """LOAD CSV WITH HEADERS FROM 'file:///journal_paper_relations.csv' AS row
             MATCH (paper:Paper {paperDOI: row.paperDOI})
+            MATCH (journal:Journal {journalID: row.journalID})
             MATCH (journal:Journal {journalID: row.journalID})
             MERGE (paper)-[a:PUBLISHED_IN {year: toInteger(row.year), volume: toInteger(row.volume)}]->(journal)"""
     )      
