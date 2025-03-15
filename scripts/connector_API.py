@@ -12,7 +12,7 @@ logger = logging.getLogger()
 def retrive_papers_ids(api_key, field):
     all_papers = []
     offset = 0
-    limit = 50 #limit for 100 paper for each field
+    limit = 50 #limit for 50 paper for each field
 
     url = f"https://api.semanticscholar.org/graph/v1/paper/search?query={field}&limit={limit}&offset={offset}"
     headers = {"x-api-key": api_key}

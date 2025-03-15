@@ -18,7 +18,7 @@ logger = logging.getLogger()
 first_names = ["John", "Jane", "Alex", "Emily", "Chris", "Sarah", "Michael", "Jessica", "David", "Sophia"]
 last_names = ["Smith", "Johnson", "Brown", "Williams", "Jones", "Garcia", "Miller", "Davis", "Martinez", "Hernandez", "Silva", "Gomes"]
 editions = list(range(1, 21))  # 1 to 20
-cities = ["New York", "London", "Paris", "Tokyo", "Sydney", "Berlin", "Beijing", "Los Angeles", "Chicago", "Houston", "Barcelona", "Sao Paulo", "Abuja"]
+cities = ["Barcelona", "Sao Paulo", "Abuja","New York", "London", "Paris", "Tokyo", "Sydney", "Berlin", "Beijing", "Los Angeles", "Chicago", "Houston"]
 adjectives = ["Annual", "International", "Global", "Regional", "National"]
 event_types = ["Conference", "Symposium", "Workshop", "Summit"]
 publication_types = ["Journal", "Review", "Magazine"]
@@ -305,5 +305,3 @@ def preprocess_data():
     #Convert to DataFrame and save as CSV
     result_df = pd.DataFrame(processed_data)
     result_df.to_csv("data/preprocessed_data/transformed_data.csv", sep=";", index=False)
-
-    value_counts = result_df['jornalVolume'].value_counts()
