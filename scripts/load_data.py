@@ -86,7 +86,7 @@ def load_edge_paper_cites_paper(session):
     session.run(
         """LOAD CSV WITH HEADERS FROM 'file:///citations.csv' AS row
             MATCH (paper:Paper {paperDOI: row.paperDOI})
-            MATCH (citedPaper:Paper {citedPaperDOI: row.citedPaperDOI})
+            MATCH (citedPaper:Paper {PaperDOI: row.citedPaperDOI})
             MERGE (paper)-[c:CITES]->(citedPaper)"""
     )      
     print('Created edge for the relationship CITES')
