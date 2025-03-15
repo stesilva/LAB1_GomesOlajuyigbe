@@ -31,7 +31,7 @@ def extract_data():
         # Make sure all lists have the same length
         for i in range(len(author_ids)):
             authors_list.append({
-                'authorID': author_ids[i],
+                'authorID': author_ids[i] if author_ids[i] else '0' ,
                 'name': author_names[i]
             })
             

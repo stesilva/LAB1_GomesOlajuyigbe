@@ -12,11 +12,23 @@ class ConnectorNeo4j:
 
         try:
             self._driver.verify_connectivity()
-            print("Connection successful!")
+            print("Connected to Neo4j successfully!")
         except Exception as e:
             print(f"Failed to connect to Neo4j: {e}")
-
 
     def close(self):
         if self._driver is not None:
             self._driver.close()
+            print("Connection closed.")
+
+    def create_session(self):
+        session = self._driver.session()
+        print("Neo4j session created.")
+        return session
+
+    def clear_session(self,session):
+       session.run(
+        "MATCH (n) DETACH DELETE n"
+        )
+       print("Cleared all nodes in the database.")
+
