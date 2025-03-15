@@ -11,7 +11,7 @@ def load_node_paper(session):
     session.run(
         """LOAD CSV WITH HEADERS FROM "file:///papers.csv" AS row
             CREATE (paper:Paper {
-            doi: trim(row.doi), 
+            paperDOI: trim(row.doi), 
             title: trim(row.title), 
             abstract: trim(row.abstract), 
             citationCount: toInteger(row.citationCount)})"""
@@ -22,7 +22,7 @@ def load_node_author(session):
     session.run(
         """LOAD CSV WITH HEADERS FROM "file:///authors.csv" AS row
             CREATE (author:Author {
-            authorId: trim(row.authorID), 
+            authorID: trim(row.authorID), 
             name: trim(row.name)})"""
     )     
     print('Created node for author.')
@@ -31,7 +31,7 @@ def load_node_journal(session):
     session.run(
         """LOAD CSV WITH HEADERS FROM "file:///journals.csv" AS row
             CREATE (journal:Journal {
-            journalId: trim(row.journalID), 
+            journalID: trim(row.journalID), 
             name: trim(row.name)})"""
     )      
     print('Created node for journal.')
@@ -40,7 +40,7 @@ def load_node_conference_workshop(session):
     session.run(
         """LOAD CSV WITH HEADERS FROM "file:///conferences.csv" AS row
             CREATE (conferenceworkshop:ConferenceWorkshop {
-            conferenceWorkshopId: trim(row.conferenceID), 
+            conferenceWorkshopID: trim(row.conferenceID), 
             name: trim(row.name),
             type: trim(row.type)})"""
     )      
@@ -104,7 +104,7 @@ def load_edge_paper_publishedin_journal(session):
     session.run(
         """LOAD CSV WITH HEADERS FROM 'file:///journal_paper_relations.csv' AS row
             MATCH (paper:Paper {paperDOI: row.paperDOI})
-            MATCH (journal:Journal {journalID: row.cjournalID})
+            MATCH (journal:Journal {journalID: row.journalID})
             MERGE (paper)-[a:PUBLISHED_IN {year: toInteger(row.year), volume: toInteger(row.volume)}]->(journal)"""
     )      
     print('Created edge for the relationship PUBLISHED_IN')
