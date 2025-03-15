@@ -9,26 +9,48 @@ logger = logging.getLogger()
 
 def load_node_paper(session):
     session.run(
+        """LOAD CSV WITH HEADERS FROM "file:///papers.csv" AS row
+            CREATE (paper:Paper {
+            doi: trim(row.doi), 
+            title: trim(row.title), 
+            abstract: trim(row.abstract), 
+            citationCount: toInteger(row.citationCount)})"""
     )     
     print('Created node for paper.')
 
 def load_node_author(session):
     session.run(
+        """LOAD CSV WITH HEADERS FROM "file:///authors.csv" AS row
+            CREATE (author:Author {
+            authorId: trim(row.authorID), 
+            name: trim(row.name)})"""
     )     
     print('Created node for author.')
 
 def load_node_journal(session):
     session.run(
+        """LOAD CSV WITH HEADERS FROM "file:///journals.csv" AS row
+            CREATE (journal:Journal {
+            journalId: trim(row.journalID), 
+            name: trim(row.name)})"""
     )      
     print('Created node for journal.')
 
 def load_node_conference_workshop(session):
     session.run(
+        """LOAD CSV WITH HEADERS FROM "file:///conferences.csv" AS row
+            CREATE (conferenceworkshop:ConferenceWorkshop {
+            conferenceWorkshopId: trim(row.conferenceID), 
+            name: trim(row.name),
+            type: trim(row.type)})"""
     )      
     print('Created node for conference/workshop.')
 
 def load_node_keyword(session):
     session.run(
+        """LOAD CSV WITH HEADERS FROM "file:///keywords.csv" AS row
+            CREATE (keyword:Keyword {
+            keyword: trim(row.keyword)})"""
     )      
     print('Created node for keyword.')
 
