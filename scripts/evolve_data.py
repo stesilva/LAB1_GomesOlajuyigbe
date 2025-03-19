@@ -4,6 +4,7 @@ import random
 
 # Set random seed for reproducibility
 random.seed(42)
+np.random.seed(42)
 
 def generate_affiliation(df):
 
@@ -33,17 +34,9 @@ def generate_affiliation(df):
     return df[['authorID', 'institution_id']]\
         .rename(columns={'institution_id': 'institutionID'})
 
-import pandas as pd
-import random
-import numpy as np
-
 def generate_synthetic_reviews(input_file, output_file):
     # Read the CSV file
     review_df = pd.read_csv(input_file)
-
-    # Set random seed for reproducibility
-    random.seed(42)
-    np.random.seed(42)
 
     # Create lists of reasons for different decisions
     accept_reviews = [
