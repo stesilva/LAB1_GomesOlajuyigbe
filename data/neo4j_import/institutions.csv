@@ -1,12 +1,12 @@
 institutionID,name,type
-1,Alpha Corporation,company
-5,University of Berlin,university
-7,University of Madrid,university
-3,Omega Corporation,company
-11,Zeta Corporation,company
-9,University of Paris,university
-2,Ijuo Corporation,company
-4,University of Barcelona,university
 6,University of London,university
 10,University of Rome,university
+5,University of Berlin,university
+3,Omega Corporation,company
+11,Zeta Corporation,company
+7,University of Madrid,university
+4,University of Barcelona,university
+1,Alpha Corporation,company
+2,Ijuo Corporation,company
+9,University of Paris,university
 8,University of New York,university
