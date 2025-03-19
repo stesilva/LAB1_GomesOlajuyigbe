@@ -6,10 +6,7 @@ import ast
 import json
 import random
 import string
-from collections import Counter
-import re
 
-#Set logger configurations
 logging.basicConfig(level=logging.INFO) 
 logger = logging.getLogger()
 
@@ -95,13 +92,9 @@ def paperAbstract_format(row):
     abstract = row.get("abstract", "")
 
     #Ensure the value is a string and remove leading/trailing whitespace
-    if isinstance(abstract, str):  #Check if it's a string
-        #Remove leading and trailing whitespace
+    if isinstance(abstract, str): 
         abstract = abstract.strip()
-        
-        #Split the abstract into words
         words = abstract.split()
-        
         #Keep only the first 150 words
         abstract = " ".join(words[:150])
     else:
@@ -225,7 +218,7 @@ def keywords_format(row):
             if keyword.lower() in title:
                 title_keywords.append(keyword)
         
-    #Combine base, predefined, and additional keywords
+    #Combine base and additional keywords
     combined_keywords = list(set(base_keywords + title_keywords))
 
     if not combined_keywords:
@@ -234,11 +227,10 @@ def keywords_format(row):
     return combined_keywords
 
 def references_format(row, valid_paper_ids):
-    # Safely evaluate the "references" field and extract references
     publication_references = safe_eval(row.get("references"), {})
     references_ids = [reference.get("paperId", "") for reference in publication_references]
     
-    # Filter references based on valid_paper_ids
+    # Filter references based on valid_paper_ids. Only keep the references that exists in the base papers (paper with all detailed info)
     if isinstance(references_ids, list):
         filtered_references = [cid for cid in references_ids if cid in valid_paper_ids]
     elif isinstance(references_ids, str):
@@ -253,21 +245,13 @@ def references_format(row, valid_paper_ids):
 
 
 def preprocess_data():
-
-    #Make adjustments for each needed field
     logger.info('Preprocessing data from API')
-
-    #Specify the directory containing the CSV files with raw data
     directory = 'data/raw_data'
-
-    #Create an empty dataframe(df) to hold the combined data
     combined_data = pd.DataFrame()
 
-    #Iterate through all files in the directory
     for file in os.listdir(directory):
         if file.endswith('.csv') and file.startswith('paper_'):
             file_path = os.path.join(directory, file)
-            #Read each CSV file and append its data to the combined df
             data = pd.read_csv(file_path)
             combined_data = pd.concat([combined_data, data], ignore_index=True) 
 
@@ -277,7 +261,6 @@ def preprocess_data():
     #Retrive list of valid paper IDs:
     valid_paper_ids = combined_data['paperId'].tolist()
 
-    #Create new df for storing preprocessed data
     processed_data = []
     for _, row in combined_data.iterrows():
         filtered_references, reference_count = references_format(row, valid_paper_ids)
@@ -302,6 +285,5 @@ def preprocess_data():
             "referenceCount": reference_count
         })
 
-    #Convert to DataFrame and save as CSV
     result_df = pd.DataFrame(processed_data)
     result_df.to_csv("data/preprocessed_data/transformed_data.csv", sep=";", index=False)
