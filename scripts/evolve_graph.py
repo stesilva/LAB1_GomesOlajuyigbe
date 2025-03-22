@@ -29,7 +29,7 @@ def load_edge_author_affiliated_institution(session):
 def update_edge_paper_reviewed_author(session):
     session.run(
         """LOAD CSV WITH HEADERS FROM "file:///reviewer_paper_properties.csv" AS row
-            MATCH (paper:Paper {paperDOI: row.paperDOI}), (author: Author {authorID: row.authorID})
+            MATCH (paper:Paper {paperDOI: row.paperDOI}), (author:Author {authorID: row.authorID})
             MATCH (paper)-[r:REVIEWED_BY]->(author)
             SET r.review = row.review, r.decision = row.suggested_decision"""
     )      
