@@ -42,7 +42,10 @@ def run_query1_v2(session):
 
 def run_query2(session):
     result = session.run(
-        """"""
+        """MATCH (cw:ConferenceWorkshop)<-[published:PRESENTED_IN]-(paper:Paper)-[:AUTHORED_BY]->(author:Author)
+        WITH cw.name AS conferenceWorkshopName, author.name as author, COUNT(DISTINCT published.edition) as distinct_editions
+        WHERE distinct_editions > 3
+        RETURN conferenceWorkshopName, collect(author) as community"""
     )     
     
     print('----------- Results for query 2 -------------')
