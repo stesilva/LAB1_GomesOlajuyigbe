@@ -39,7 +39,7 @@ def run_query1_v2(session):
     summary = result.consume()
     print_results(records, summary)
 
-
+# Find the h-index of the authors in your graph.
 def run_query2(session):
     result = session.run(
         """MATCH (cw:ConferenceWorkshop)<-[published:PRESENTED_IN]-(paper:Paper)-[:AUTHORED_BY]->(author:Author)
@@ -82,9 +82,17 @@ def run_query3(session):
     summary = result.consume()
     print_results(records, summary)    
 
+# Find the h-index of the authors in your graph.
 def run_query4(session):
     result = session.run(
-        """"""
+        """MATCH (paper:Paper)-[:AUTHORED_BY]->(author:Author)
+        WITH author.name as authorName, paper.citationCount as citation
+        ORDER BY authorName, citation DESC
+        WITH authorName, collect(citation) as citations
+        WITH authorName, citations, range(0, size(citations)-1) as indices
+        WITH authorName, max([i in indices WHERE i < size(citations) AND citations[i] >= i+1 | i+1]) as hindex
+        RETURN authorName, size(hindex) as hindex
+        ORDER BY hindex DESC"""
     )     
     
     print('----------- Results for query 4 -------------')
