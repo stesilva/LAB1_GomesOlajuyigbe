@@ -1,10 +1,7 @@
 from scripts.connector_neo4j import ConnectorNeo4j
 import logging
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)  # Set log level to INFO
-
-# Create logger object
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
 def print_results(records, summary):
@@ -39,13 +36,13 @@ def run_query1_v2(session):
     summary = result.consume()
     print_results(records, summary)
 
-# For each conference/workshop find its community: i.e., those authors that have published papers on that conference/workshop in, at least, 4 different editions.
+#For each conference/workshop find its community: i.e., those authors that have published papers on that conference/workshop in, at least, 4 different editions.
 def run_query2(session):
     result = session.run(
-        """MATCH (cw:ConferenceWorkshop)<-[published:PRESENTED_IN]-(paper:Paper)-[:AUTHORED_BY]->(author:Author)
-        WITH cw.name AS conferenceWorkshopName, author.name as author, COUNT(DISTINCT published.edition) as distinct_editions
+        """MATCH (cw:ConferenceWorkshop)<-[presented:PRESENTED_IN]-(paper:Paper)-[:AUTHORED_BY]->(author:Author)
+        WITH cw.name AS conferenceWorkshopName, author, COUNT(DISTINCT presented.edition) as distinct_editions
         WHERE distinct_editions > 3
-        RETURN conferenceWorkshopName, collect(author) as community"""
+        RETURN conferenceWorkshopName, collect(author.name) as community"""
     )     
     
     print('----------- Results for query 2 -------------')
@@ -64,17 +61,17 @@ def run_query3(session):
     result = session.run(
         """MATCH (p:Paper)-[:CITES]->(citedPaper:Paper)-[pi:PUBLISHED_IN]->(j:Journal)
         MATCH (p)-[citingPub:PUBLISHED_IN|PRESENTED_IN]->()
-        WITH j.journalID AS journalID,j.name AS journalName,citingPub.year AS year,pi.year AS publicationYear
+        WITH j,citingPub.year AS year,pi.year AS publicationYear
         WHERE publicationYear IN [year - 1, year - 2]
-        WITH journalID,journalName, year, COUNT(*) AS journalCitations
+        WITH j, year, COUNT(*) AS journalCitations
 
-        MATCH (p:Paper)-[pi:PUBLISHED_IN]->(j:Journal {journalID: journalID})
-        WHERE pi.year IN [year - 1, year - 2]
-        WITH journalID,journalName,year,journalCitations, COUNT(p) AS journalPublications
+        MATCH (p2:Paper)-[pi2:PUBLISHED_IN]->(j2:Journal {journalID: j.journalID})
+        WHERE pi2.year IN [year - 1, year - 2]
+        WITH j2,year,journalCitations, COUNT(p2) AS journalPublications
         WHERE journalPublications > 0
 
-        RETURN journalID,journalName,year,(journalCitations/journalPublications) AS impactFactor
-        ORDER BY year DESC, impactFactor DESC, journalName ASC """
+        RETURN j2.journalID as journalID,j2.name as journalName,year,(journalCitations/journalPublications) AS impactFactor
+        ORDER BY year DESC,  impactFactor DESC, journalName ASC """
     )     
     
     print('----------- Results for query 3 -------------')
@@ -82,16 +79,16 @@ def run_query3(session):
     summary = result.consume()
     print_results(records, summary)    
 
-# Find the h-index of the authors in your graph.
+#Find the h-index of the authors in your graph.
 def run_query4(session):
     result = session.run(
         """MATCH (paper:Paper)-[:AUTHORED_BY]->(author:Author)
-        WITH author.name as authorName, paper.citationCount as citation
-        ORDER BY authorName, citation DESC
-        WITH authorName, collect(citation) as citations
-        WITH authorName, citations, range(0, size(citations)-1) as indices
-        WITH authorName, max([i in indices WHERE i < size(citations) AND citations[i] >= i+1 | i+1]) as hindex
-        RETURN authorName, size(hindex) as hindex
+        WITH author, paper.citationCount as citation
+        ORDER BY author.authorID, citation DESC
+        WITH author, collect(citation) as citations
+        WITH author, citations, range(0, size(citations)-1) as indices
+        WITH author, max([i in indices WHERE i < size(citations) AND citations[i] >= i+1 | i+1]) as hindex
+        RETURN author.authorID as authorID, author.name as authorName, size(hindex) as hindex
         ORDER BY hindex DESC"""
     )     
     
@@ -100,19 +97,17 @@ def run_query4(session):
     summary = result.consume()
     print_results(records, summary)    
 
-# Find the h-index of the authors in your graph.
+#Find the h-index of the authors in your graph without the 'citationCount' property
 def run_query4_v2(session):
     result = session.run(
         """MATCH (paper:Paper) -[:CITES]-> (citedpaper:Paper)
         MATCH (citedpaper:Paper)-[:AUTHORED_BY]->(author:Author)
-        WITH author.name as authorName, citedpaper.paperDOI as paperdoi, COUNT(paper) as citation
-        ORDER BY authorName, citation DESC
-        WITH authorName, collect(citation) as citations
-        WITH authorName, citations,
-            range(0, size(citations)-1) as indices
-        WITH authorName, 
-            max([i in indices WHERE i < size(citations) AND citations[i] >= i+1 | i+1]) as hindex
-        RETURN authorName, size(hindex) as hindex
+        WITH author, citedpaper.paperDOI as paperdoi, COUNT(paper) as citation
+        ORDER BY author.authorID, citation DESC
+        WITH author, collect(citation) as citations
+        WITH author, citations, range(0, size(citations)-1) as indices
+        WITH author, max([i in indices WHERE i < size(citations) AND citations[i] >= i+1 | i+1]) as hindex
+        RETURN author.authorID as authorID, author.name as authorName, size(hindex) as hindex
         ORDER BY hindex DESC"""
     )
 
@@ -129,10 +124,9 @@ def connect_run_neo4j(uri,user,password):
     logger.info("Running Queries ...")
 
     session.execute_read(run_query1)
-    #session.execute_read(run_query1_v2)
-    #session.execute_read(run_query2)
+    session.execute_read(run_query2)
     session.execute_read(run_query3)
-    #session.execute_read(run_query4)
+    session.execute_read(run_query4)
 
 
     print('----------- All queries finished -----------')
