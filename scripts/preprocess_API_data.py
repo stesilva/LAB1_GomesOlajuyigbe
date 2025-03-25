@@ -167,7 +167,7 @@ def conferenceWorkshopCity_format(row):
 def journalID_format(row):
     pub_type = determine_publication_type(row)
     if pub_type == "journal":
-        journal = safe_eval(row.get("journal"), {})
+        journal = safe_eval(row.get("publicationVenue"), {})
         return journal.get("id", generate_fake_id())
     return ""
 
@@ -177,7 +177,7 @@ def journalName_format(row):
     year = get_year(row)
 
     if pub_type == "journal":
-        journal = safe_eval(row.get("journal"), {})
+        journal = safe_eval(row.get("publicationVenue"), {})
         if journal.get("name"):
             return journal["name"]
         return generate_venue_name(pub_type, topic, year)
