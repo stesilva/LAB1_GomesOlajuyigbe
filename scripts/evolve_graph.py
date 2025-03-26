@@ -1,11 +1,11 @@
 from scripts.connector_neo4j import ConnectorNeo4j
 import logging
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)  # Set log level to INFO
-
-# Create logger object
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
+
+#Functions to create nodes and edges for each CSV file containing the generated data
+#Created according to desing version 2 (assets/graphDesignVersion2.png)
 
 def load_node_institution(session):
     session.run(
@@ -38,7 +38,6 @@ def update_edge_paper_reviewed_author(session):
 def connect_load_neo4j(uri,user,password):
     connector = ConnectorNeo4j(uri, user, password)
     connector.connect()
-
     session = connector.create_session()
 
     logger.info("Creating and loading nodes and edges ...")

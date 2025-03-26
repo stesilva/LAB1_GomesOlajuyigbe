@@ -10,11 +10,10 @@ import string
 logging.basicConfig(level=logging.INFO) 
 logger = logging.getLogger()
 
-
-#Predefined lists of fake data for generating random inputs
+#Predefined lists of synthetic data for generating random inputs
 first_names = ["John", "Jane", "Alex", "Emily", "Chris", "Sarah", "Michael", "Jessica", "David", "Sophia"]
 last_names = ["Smith", "Johnson", "Brown", "Williams", "Jones", "Garcia", "Miller", "Davis", "Martinez", "Hernandez", "Silva", "Gomes"]
-editions = list(range(1, 21))  # 1 to 20
+editions = list(range(1, 21))
 cities = ["Barcelona", "Sao Paulo", "Abuja","New York", "London", "Paris", "Tokyo", "Sydney", "Berlin", "Beijing", "Los Angeles", "Chicago", "Houston"]
 adjectives = ["Annual", "International", "Global", "Regional", "National"]
 event_types = ["Conference", "Symposium", "Workshop", "Summit"]
@@ -29,7 +28,6 @@ field_keywords = [
 abstract_default = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exerreference ullamco laboris nisi ut aliquip ex ea commodo consequat"
 
 def generate_random_name():
-    #Generate a random name using predefined first and last names
     return f"{random.choice(first_names)} {random.choice(last_names)}"
 
 #Function to evaluate if value can be iterated
@@ -47,8 +45,8 @@ def safe_eval(value, default=None):
 def generate_fake_id():
     return ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
 
+#Determine if a publication is a journal/conference/workshop based on the venue it was published
 def determine_publication_type(row):
-
     pub_type = ''
 
     publication_venue = safe_eval(row.get("publicationVenue"), {})
@@ -60,18 +58,18 @@ def determine_publication_type(row):
     elif "conference" in pub_type or "workshop" in pub_type:
         return "conference"
     else:
-        return "journal"  # Default to journal if not specified
+        return "journal"  #Default to journal if not specified
     
 def extract_topic(row):
     fields_of_study = safe_eval(row.get("fieldsOfStudy", "[]"))
-    return fields_of_study[0] if fields_of_study else "Science"
+    return fields_of_study[0] if fields_of_study else "Science" #Default to 'Science' if not specified
 
 def get_year(row):
     year = row.get("year", "")
     try:
         return int(year)
     except ValueError:
-        return random.randint(2000, 2025)
+        return random.randint(2000, 2025) #Default to year between 2000 and 2025 if not specified
 
 def generate_venue_name(publication_type, topic, year):
     if publication_type == "conference" or publication_type == "workshop":
@@ -79,7 +77,7 @@ def generate_venue_name(publication_type, topic, year):
     elif publication_type == "journal":
         return f"{topic} {random.choice(publication_types)} ({year})"
     else:
-        # Default to journal if publication type is missing
+        #Default to journal if publication type is missing
         return f"{topic} {random.choice(publication_types)} ({year})"
 
 def paperDOI_format(row):
@@ -104,7 +102,7 @@ def paperAbstract_format(row):
 def paperAuthorID_format(row):
     authors = safe_eval(row.get("authors"), [])
     if not authors:
-        #Generate a fake numerical ID if there are no authors
+        #Generate a fake ID if there are no authors
         return [str(random.randint(1000000, 9999999))]
     return [author.get("authorId", "") for author in authors]
 
@@ -120,6 +118,7 @@ def conferenceWorkshopID_format(row):
     pub_type = determine_publication_type(row)
     if pub_type == "conference":
         venue = safe_eval(row.get("publicationVenue"), {})
+        #Generate a fake ID if there are no ID
         return venue.get("id", generate_fake_id())
     return ""
 
@@ -132,6 +131,7 @@ def conferenceWorkshopName_format(row):
         venue = safe_eval(row.get("publicationVenue"), {})
         if venue.get("name"):
             return venue["name"]
+        #Generate a fake name if there are no name
         return generate_venue_name(pub_type, topic, year)
     return ""
 
@@ -139,13 +139,14 @@ def conferenceWorkshopType_format(row):
     pub_type = determine_publication_type(row)
     if pub_type == "conference":
         venue = safe_eval(row.get("publicationVenue"), {})
+        #If there is no 'type' default it to workshop
         return venue.get("type",  "workshop")
     return ""
 
 def conferenceWorkshopEdition_format(row):
     pub_type = determine_publication_type(row)
     if pub_type == "conference":
-        return random.choice(editions)
+        return random.choice(editions) #Generate synthetic editions since this field do not exist in the API response
     return ""
 
 def conferenceWorkshopYear_format(row):
@@ -155,15 +156,17 @@ def conferenceWorkshopYear_format(row):
         try:
             return int(year)
         except ValueError:
-            return random.randint(2000, 2025)
+            return random.randint(2000, 2025) #Generate a fake year if there are no year
     return ""
 
 def conferenceWorkshopCity_format(row):
     pub_type = determine_publication_type(row)
     if pub_type == "conference":
-        return random.choice(cities)
+        return random.choice(cities) #Generate synthetic cities since this field do not exist in the API response
     return ""
 
+
+#Journal functions have the same approches as the Conference/Workshop showed above
 def journalID_format(row):
     pub_type = determine_publication_type(row)
     if pub_type == "journal":
@@ -205,10 +208,10 @@ def jornalVolume_format(row):
     return ""
 
 def keywords_format(row):
-    # Get existing keywords from fieldsOfStudy
+    #Get existing keywords from fieldsOfStudy
     base_keywords = safe_eval(row.get("fieldsOfStudy"), [])
     
-    # Extract additional keywords from the article title
+    #Extract additional keywords from the article title
     title = row.get("title", "").lower()
     title_keywords = []
     
@@ -230,7 +233,7 @@ def references_format(row, valid_paper_ids):
     publication_references = safe_eval(row.get("references"), {})
     references_ids = [reference.get("paperId", "") for reference in publication_references]
     
-    # Filter references based on valid_paper_ids. Only keep the references that exists in the base papers (paper with all detailed info)
+    #Filter references based on valid_paper_ids. Only keep the references that exists in the base papers (paper with all detailed info)
     if isinstance(references_ids, list):
         filtered_references = [cid for cid in references_ids if cid in valid_paper_ids]
     elif isinstance(references_ids, str):
@@ -238,7 +241,7 @@ def references_format(row, valid_paper_ids):
     else:
         filtered_references = []
     
-    # Count the number of valid references
+    #Count the number of valid references
     reference_count = len(filtered_references)
     
     return filtered_references, reference_count
@@ -249,6 +252,7 @@ def preprocess_data():
     directory = 'data/raw_data'
     combined_data = pd.DataFrame()
 
+    #Combine all CSVs from the different fields 
     for file in os.listdir(directory):
         if file.endswith('.csv') and file.startswith('paper_'):
             file_path = os.path.join(directory, file)
@@ -258,7 +262,7 @@ def preprocess_data():
     #Remove duplicate rows based on the 'paperID' attribute
     combined_data = combined_data.drop_duplicates(subset='paperId', keep='first')
 
-    #Retrive list of valid paper IDs:
+    #Retrive list of valid paper IDs (papers with details):
     valid_paper_ids = combined_data['paperId'].tolist()
 
     processed_data = []

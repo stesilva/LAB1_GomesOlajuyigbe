@@ -1,11 +1,11 @@
 from scripts.connector_neo4j import ConnectorNeo4j
 import logging
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)  # Set log level to INFO
-
-# Create logger object
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
+
+#Functions to create nodes and edges for each CSV file containing the generated and fetched data
+#Created according to desing version 1 (assets/graphDesignVersion1.png)
 
 def load_node_paper(session):
     session.run(
@@ -110,12 +110,9 @@ def load_edge_paper_publishedin_journal(session):
     )      
     print('Created edge for the relationship PUBLISHED_IN')
 
-
-
 def connect_load_neo4j(uri,user,password):
     connector = ConnectorNeo4j(uri, user, password)
     connector.connect()
-
     session = connector.create_session()
     connector.clear_session(session)
 
@@ -133,7 +130,6 @@ def connect_load_neo4j(uri,user,password):
     session.execute_write(load_edge_paper_has_keyword)
     session.execute_write(load_edge_paper_presentedin_conference_workshop)
     session.execute_write(load_edge_paper_publishedin_journal)
-
 
     print('Creation and loading completed with successes.')
 

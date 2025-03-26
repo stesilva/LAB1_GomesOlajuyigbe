@@ -54,24 +54,25 @@ def run_query2(session):
 #Find the impact factor of the journals in your graph
 #Impact factor (year1) = Citations(year1) / Publications(year1-1) + Publications(year1-2)
 #For this it was considered that to count towards a citation, the citedPaper has to be published 1 or 2 year before the paper that made the citation
-#For example, if a paper published in 2025 cites another one from 2024, this citation will count towards the IF 2025 of the cited paper.
-#If it cites a paper from 2006 this citation will not count towards the IF 2007 of the cited paper.
+#For example, if a paper published in 2021 cites another one from 2020, this citation will count towards the IF 2021 of the cited paper.
+#If it cites a paper from 2018 this citation will not count towards the IF 2018 of the cited paper.
 
+#Fixed a year to better design the query and to better see the results
 def run_query3(session):
     result = session.run(
-        """MATCH (p:Paper)-[:CITES]->(citedPaper:Paper)-[pi:PUBLISHED_IN]->(j:Journal)
-        MATCH (p)-[citingPub:PUBLISHED_IN|PRESENTED_IN]->()
-        WITH j,citingPub.year AS year,pi.year AS publicationYear
-        WHERE publicationYear IN [year - 1, year - 2]
-        WITH j, year, COUNT(*) AS journalCitations
+        """MATCH (p:Paper)-[pi:PUBLISHED_IN]->(j:Journal)
+        WHERE pi.year IN [2020, 2019]
+        WITH j, collect(p.paperDOI) as papersIDs
+        WITH j, papersIDs, size(papersIDs) as journalPublications
+        
+        UNWIND papersIDs as papersID
+        MATCH (citingPaper:Paper)-[:CITES]->(citedPaper:Paper {paperDOI:papersID})
+        MATCH (citingPaper)-[citingPub:PUBLISHED_IN|PRESENTED_IN]->()
+        WHERE citingPub.year IN [2021]
+        WITH j, journalPublications,COUNT(citingPaper.paperDOI) AS journalCitations
 
-        MATCH (p2:Paper)-[pi2:PUBLISHED_IN]->(j2:Journal {journalID: j.journalID})
-        WHERE pi2.year IN [year - 1, year - 2]
-        WITH j2,year,journalCitations, COUNT(p2) AS journalPublications
-        WHERE journalPublications > 0
-
-        RETURN j2.journalID as journalID,j2.name as journalName,year,(journalCitations/journalPublications) AS impactFactor
-        ORDER BY year DESC,  impactFactor DESC, journalName ASC """
+        RETURN j.journalID as journalID,j.name as journalName, 2021 as impactYear, journalCitations, journalPublications, (toFloat(journalCitations)/journalPublications) AS impactFactor
+        ORDER BY impactFactor DESC, journalName ASC"""
     )     
     
     print('----------- Results for query 3 -------------')

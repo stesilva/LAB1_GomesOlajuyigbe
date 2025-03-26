@@ -1,6 +1,6 @@
 from neo4j import GraphDatabase
 
-
+#Functions to connect to the Neo4j database and perform commands
 class ConnectorNeo4j:
     def __init__(self, uri, user, password):
         self._uri = uri
@@ -30,5 +30,5 @@ class ConnectorNeo4j:
        session.run(
         "MATCH (n) DETACH DELETE n"
         )
-       print("Cleared all nodes in the database.")
+       print("Cleared all nodes and relationships in the database.")
 

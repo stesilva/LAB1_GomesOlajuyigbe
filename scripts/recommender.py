@@ -4,7 +4,10 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
+#Functions to create nodes and edges for each corresponding query
+#Created according to desing version 3 (assets/graphDesignVersion3.png)
 
+#Define a node for the 'Technology' community and then link the keywords to that given node
 def run_query1(session):
     session.run(
         """MATCH (c:Community {name: 'Technology'})
@@ -20,13 +23,17 @@ def run_query1(session):
     result = session.run(
         """MATCH (k:Keyword)
             WHERE k.keyword IN ['Machine Learning', 'Big Data', 'Natural Language Processing', \
-            'Artificial Intelligence','Graph', 'Neural Networks', 'Cloud', 'Data Mining', 'Computer Vision', 'Cybersecurity']
+            'Artificial Intelligence','Graph', 'Computer Science', 'Cloud', 'Data Mining', 'Computer Vision', 'Cybersecurity']
             MATCH (c:Community)
             MERGE (k)-[:DEFINES]->(c)"""
     )     
     
     print('----------- Relationship with keywords created! -------------')
 
+
+#Process journals and conferences/workshops separately
+#For each paper, see if it is present on the list of papers that have the keywords that defines a community. If yes, mark it as 1
+# A journal is related to a community if 90% of its papers are market with 1
 def run_query2(session):
 
     session.run(
@@ -55,6 +62,8 @@ def run_query2(session):
     print('----------- Relationship between Journals/Conference/Workshops and Communities created!-------------') 
 
 
+#Define the top 100 papers of the community. To be considered a top paper, that paper has to be cited by another that also belongs to the community.
+#Papers with the most number of citations are selected
 def run_query3(session):
 
     session.run(
@@ -74,6 +83,7 @@ def run_query3(session):
     
     print('----------- TOP 100 papers for each community defined! -------------')
 
+#Define the author by simple checking the papers that are marked as top 100
 def run_query4(session):
     session.run(
         """MATCH ()-[r:GURU|POSSIBLE_REVIEWER]->()
