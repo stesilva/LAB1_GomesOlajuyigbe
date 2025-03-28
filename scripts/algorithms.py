@@ -18,7 +18,14 @@ def run_query1(session):
                 'CITES'
             );
 
-            CALL gds.pageRank.stream('paper-cites-citedpaper')
+            CALL gds.pageRank.write.estimate(
+            'paperCites', 
+                {
+                    writeProperty: 'pageRank'
+                }
+            );
+
+            CALL gds.pageRank.stream('paperCites')
             YIELD nodeId, score
             RETURN gds.util.asNode(nodeId).paperDOI AS paperId, score as influence
             ORDER BY influence DESC
@@ -46,7 +53,16 @@ def run_query2(session):
                         orientation:'REVERSE'
                     }
                 }
-            )
+            );
+
+            CALL gds.nodeSimilarity.write.estimate(
+                'similarAuthors', 
+                {
+                    writeRelationshipType: 'SIMILAR',
+                    writeProperty: 'score'
+                }
+            );
+
             CALL gds.nodeSimilarity.stream(
                 'similarAuthors', 
                 {
