@@ -11,21 +11,23 @@ def print_results(records, summary):
 
 # Use Pagerank algorithm to check most influential papers based on the number of papers that cited it
 def run_query1(session):
-    result = session.run(
+    session.run(
         """CALL gds.graph.project(
                 'paperCites',
                 'Paper',
                 'CITES'
-            );
-
-            CALL gds.pageRank.write.estimate(
+            )""")
+    
+    session.run( 
+        """CALL gds.pageRank.write.estimate(
             'paperCites', 
                 {
                     writeProperty: 'pageRank'
                 }
-            );
+            )""")
 
-            CALL gds.pageRank.stream('paperCites')
+    result = session.run(     
+        """CALL gds.pageRank.stream('paperCites')
             YIELD nodeId, score
             RETURN gds.util.asNode(nodeId).paperDOI AS paperId, score as influence
             ORDER BY influence DESC
@@ -43,7 +45,7 @@ def run_query1(session):
 # we filtered the results to only include similar authors with a similarity less than 1 to  filter out trivial cases  
 
 def run_query2(session):
-    result = session.run(
+    session.run(
         """CALL gds.graph.project(
                 'similarAuthors',
                 ['Author', 'Paper'],
@@ -53,17 +55,19 @@ def run_query2(session):
                         orientation:'REVERSE'
                     }
                 }
-            );
+            )""")
 
-            CALL gds.nodeSimilarity.write.estimate(
+    session.run(      
+        """CALL gds.nodeSimilarity.write.estimate(
                 'similarAuthors', 
                 {
                     writeRelationshipType: 'SIMILAR',
                     writeProperty: 'score'
                 }
-            );
+            )""")
 
-            CALL gds.nodeSimilarity.stream(
+    result = session.run(
+     """CALL gds.nodeSimilarity.stream(
                 'similarAuthors', 
                 {
                     topK:1,
