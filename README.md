@@ -10,7 +10,7 @@ This repository contains a hands-on **lab on Property Graphs** using **Neo4j**. 
 ## Execution
 ### **Part A: Graph Modeling & Data Loading**
 - **A.1 Modeling:** Design located in the folder assets.
-- **A.2 Instantiating/Loading:** python A2_GomesOlajuyigbe.py
+- **A.2 Instantiating/Loading:** python A2_GomesOlajuyigbe.py [Make sure that the created files can be located by neo4j, otherwise the loading will not work]
 - **A.3 Graph Evolution:** python A3_GomesOlajuyigbe.py
 
 ### **Part B: Querying Graph Data**
