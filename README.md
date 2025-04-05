@@ -4,7 +4,7 @@
 This repository contains a hands-on **lab on Property Graphs** using **Neo4j**. The lab covers **graph modeling, querying, data loading, evolution, and analysis using Cypher and graph algorithms.**
 
 ## Setup Instructions
-1. Install **Neo4j** and set up a database instance (refer to official Neo4j documentation for installation guides). The database should be named 'neo4j' and the password should be '12345678'. If other names and password is chosen, the file .env should be modified. 
+1. Install **Neo4j** and set up a database instance (refer to official Neo4j documentation for installation guides). The username should be named 'neo4j' and the password should be '12345678'. If other username and password is chosen, the file .env should be modified. 
 2. Install the needed libraries in Python: pip install -r requirements.txt
 
 ## Execution
