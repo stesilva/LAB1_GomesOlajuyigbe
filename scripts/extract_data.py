@@ -3,9 +3,10 @@
 import pandas as pd
 import ast
 import os
+import shutil
 
 
-def extract_data():
+def extract_data(import_path):
     os.makedirs('data/neo4j_import', exist_ok=True)
     df = pd.read_csv('data/preprocessed_data/transformed_data.csv', sep= ';')
 
@@ -122,3 +123,10 @@ def extract_data():
     reviewer_paper_df.to_csv('data/neo4j_import/reviewer_paper_relations.csv', index=False)
 
     print("Files saved in the 'data/neo4j_import' directory.")
+
+    #8. Copy files to neo4j import folder
+    for file_name in os.listdir('data/neo4j_import'):
+        source_file = os.path.join('data/neo4j_import', file_name)
+        destination_file = os.path.join(import_path, file_name)
+        shutil.copy(source_file, destination_file)
+        

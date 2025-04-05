@@ -17,6 +17,7 @@ if __name__ == "__main__":
     password = os.getenv("NEO4J_PASSWORD")
     api_key = os.getenv("API_KEY")
     search_fields = os.getenv("FIELDS").split(',')
+    import_path = os.getenv("IMPORT_PATH")
 
     logger.info("--------------------- RETRIVING DATA FROM SEMANTIC SCHOLAR ---------------------")
     connector_API.retrive_data_API(api_key,search_fields)
@@ -28,7 +29,7 @@ if __name__ == "__main__":
     synthetic_data.synthetic_data()
 
     logger.info("--------------------- EXTRACTING DATA TO NEO4J FORMAT ---------------------")
-    extract_data.extract_data()
+    extract_data.extract_data(import_path)
 
     logger.info("--------------------- CONNECTING AND LOADING DATA TO NEO4J ---------------------")
     load_data.connect_load_neo4j(uri,user,password)

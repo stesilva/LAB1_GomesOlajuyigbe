@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import random
+import os
+import shutil
 
 def generate_affiliation(df):
     #Create possible options for institution
@@ -126,7 +128,7 @@ def generate_reviews(input_file, output_file):
     review_df.to_csv(output_file, index=False)
 
 
-def synthetic_data():
+def synthetic_data(import_path):
     df = pd.read_csv('data/neo4j_import/authors.csv', sep=',')
     relations_df = generate_affiliation(df)
     
@@ -135,3 +137,8 @@ def synthetic_data():
 
     generate_reviews('data/neo4j_import/reviewer_paper_relations.csv', 'data/neo4j_import/reviewer_paper_properties.csv')
     print("Generated files:\n- institutions.csv\n- author_institution_relations.csv\n- reviewer_paper_properties.csv")
+
+    for file_name in os.listdir('data/neo4j_import'):
+        source_file = os.path.join('data/neo4j_import', file_name)
+        destination_file = os.path.join(import_path, file_name)
+        shutil.copy(source_file, destination_file)
